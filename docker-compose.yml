@@ -217,6 +217,27 @@ services:
       timeout: 5s
       retries: 15
 
+  # ---- DuckDB demo console over the MinIO/Iceberg lakehouse -------------------
+  # Not started by `make up`; launch interactively via `make duckdb`
+  # (docker compose run). Reads the live Iceberg catalog and exposes a view per
+  # lakehouse table, queried straight from MinIO.
+  duckdb:
+    build:
+      context: ./docker/duckdb
+    image: assaylens/duckdb:latest
+    profiles: ["tools"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    environment:
+      ICEBERG_CATALOG_HOST: host.docker.internal
+      ICEBERG_CATALOG_USER: assaylens
+      ICEBERG_CATALOG_PASSWORD: assaylens
+      S3_ENDPOINT: host.docker.internal:9000
+      S3_ACCESS_KEY: minioadmin
+      S3_SECRET_KEY: minioadmin
+    stdin_open: true
+    tty: true
+
   # ---- Langfuse v3 (LLM observability) ----------------------------------------
   # Reuses native Postgres (db `langfuse`) + native MinIO (bucket `langfuse`);
   # Clickhouse (traces) + Redis (queue) are dedicated containers.

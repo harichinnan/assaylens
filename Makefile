@@ -69,6 +69,11 @@ publish: ## Publish every lake.gold.* table to native Postgres marts.*
 .PHONY: lakehouse
 lakehouse: bronze dbt-spark graph publish index ## Full medallion: bronze -> silver/gold -> graph -> publish -> index
 
+.PHONY: duckdb
+duckdb: ## Open a DuckDB console pre-wired to the MinIO/Iceberg lakehouse (views over every table)
+	docker compose --profile tools build duckdb
+	docker compose --profile tools run --rm duckdb
+
 .PHONY: index
 index: ## Build the Elasticsearch activity-evidence + knowledge (RAG) indexes
 	$(PY) search/build_index.py --recreate

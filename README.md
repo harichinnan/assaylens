@@ -151,7 +151,22 @@ make thrift-up           # Spark Thrift Server over the Iceberg `lake` catalog
 make lakehouse           # bronze -> dbt silver/gold -> graph -> publish -> ES index
 make up                  # serving + apps: elasticsearch, metabase, agent, ui, embedder, langfuse
 make metabase-setup      # provision Metabase models + dashboards against marts.*
+make duckdb              # DuckDB console wired to the lakehouse — query Iceberg straight from MinIO
 ```
+
+**Quick client demo — query the lakehouse from DuckDB.** `make duckdb` reads the live
+Iceberg catalog and opens a DuckDB shell with a view per table (`bronze_* / silver_* / gold_*`)
+scanning MinIO directly — zero copies, no warehouse needed:
+
+```sql
+SELECT target_name, curated_measurements, round(median_potency_nm, 1) AS median_nm
+FROM gold_mart_target_activity_summary ORDER BY curated_measurements DESC;
+SELECT * FROM gold_graph_target_similarity ORDER BY shared_compounds DESC;
+```
+
+> **Langfuse:** log in with the seeded admin (`admin@assaylens.local` / `LANGFUSE_INIT_USER_PASSWORD`
+> from `.env`) — that account owns the project the agent traces into. Registering a fresh account
+> creates a separate empty org.
 
 Or run the whole medallion under **Temporal** (durable, observable, retryable):
 
@@ -162,7 +177,7 @@ make pipeline-run        # one full pipeline run; watch it at http://localhost:8
 # standalone wf:  docker compose run --rm pipeline-worker python -m orchestration.starter --workflow graph_build
 ```
 
-**Endpoints:** Agent API http://localhost:8000/docs · UI http://localhost:8501 · Metabase http://localhost:3000 · Langfuse http://localhost:3001 · Temporal UI http://localhost:8233 · Elasticsearch http://localhost:9200 · Embedder http://localhost:8100 · MinIO console http://localhost:9001
+**Endpoints:** Agent API http://localhost:8000/docs · UI http://localhost:8501 · Metabase http://localhost:3000 · Langfuse http://localhost:3001 · Temporal UI http://localhost:8233 · Elasticsearch http://localhost:9200 · Embedder http://localhost:8100 · MinIO console http://localhost:9001 · DuckDB console `make duckdb`
 
 The Streamlit UI ships **25 example questions** grouped by the tool/graph node each exercises (ES search, semantic/vector RAG, NL→SQL, graph, lineage, dashboards, a multi-step comparison, …).
 
@@ -184,7 +199,7 @@ assaylens/
 ├── agent/                  # FastAPI + LangGraph governed copilot (12 tools, guardrails, tracing)
 ├── ui/                     # Streamlit front end (25 canned questions)
 ├── metabase/               # idempotent dashboard/model provisioner
-├── docker/                 # spark-iceberg + dbt-spark images
+├── docker/                 # spark-iceberg, dbt-spark, and duckdb (lakehouse console) images
 ├── postgres/init/          # schema + read-only role bootstrap
 ├── docs/                   # architecture, data model, agent design, dashboards
 └── tests/                  # pytest: SQL guardrails, tool validation, metric definitions
