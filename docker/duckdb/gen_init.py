@@ -34,7 +34,8 @@ def main() -> None:
         "-- AssayLens lakehouse — auto-generated DuckDB init (views over MinIO Iceberg).",
         "INSTALL httpfs; LOAD httpfs;",
         "INSTALL iceberg; LOAD iceberg;",
-        f"CREATE OR REPLACE SECRET minio (TYPE S3, KEY_ID '{S3_AK}', SECRET '{S3_SK}', "
+        # PERSISTENT so the DuckDB UI's separate query sessions also get MinIO creds.
+        f"CREATE OR REPLACE PERSISTENT SECRET minio (TYPE S3, KEY_ID '{S3_AK}', SECRET '{S3_SK}', "
         f"ENDPOINT '{S3_ENDPOINT}', URL_STYLE 'path', USE_SSL false, REGION 'us-east-1');",
     ]
     for ns, tbl, loc in rows:
