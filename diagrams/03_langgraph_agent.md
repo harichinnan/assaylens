@@ -17,14 +17,14 @@ flowchart TB
   classDef guard fill:#ffebee,stroke:#c62828,color:#000;
 
   START(["POST /ask"]) --> ROUTE
-  subgraph GRAPH["LangGraph state machine · AgentState{request_id, question, plan, results, answer}"]
+  subgraph AGENT["LangGraph state machine · AgentState{request_id, question, plan, results, answer}"]
     direction TB
     ROUTE["route<br/>LLM plans 1–3 tool calls<br/>(intent_router.md, cached)"]:::llm
     EXEC["execute<br/>run planned tools in order"]:::node
     SUM["summarize<br/>LLM faithful answer<br/>(system_prompt.md, cached)"]:::llm
     ROUTE --> EXEC --> SUM
   end
-  SUM --> END(["answer + transparent steps"])
+  SUM --> FINISH(["answer + transparent steps"])
 
   EXEC --> TOOLS
 
@@ -76,7 +76,7 @@ flowchart TB
   T5 -. uses .-> LLMSVC
 
   LF["Langfuse trace<br/>root span → LLM generations (token usage) → tool spans"]:::ext
-  GRAPH -. every /ask traced .-> LF
+  AGENT -. every /ask traced .-> LF
 ```
 
 ## Tool → surface → use cheat-sheet

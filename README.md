@@ -221,4 +221,11 @@ This is a **local dev reference**, not a hardened deployment. Compose ships **de
 
 ## License & data attribution
 
-Code: **MIT** (see [LICENSE](LICENSE)). Data: ChEMBL is provided by EMBL-EBI under **CC BY-SA 3.0** — cite ChEMBL when reusing derived data. AssayLens makes **no scientific or clinical claims**; it is a data-engineering reference project.
+**No license is granted. © 2026 Hari Chinnan. All rights reserved.**
+This source is published publicly for reference and viewing only. No rights are
+granted to use, copy, modify, merge, publish, distribute, sublicense, or create
+derivative works from it without the author's express prior written permission.
+
+Data: ChEMBL is provided by EMBL-EBI under CC BY-SA 3.0 — that is an upstream
+data-source term, not a grant made by this project. AssayLens makes **no
+scientific or clinical claims**; it is a data-engineering reference project.

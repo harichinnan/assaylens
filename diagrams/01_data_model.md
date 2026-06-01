@@ -10,7 +10,7 @@ flowchart LR
   classDef bronze fill:#fff3e0,stroke:#e65100,color:#000;
   classDef silver fill:#eceff1,stroke:#455a64,color:#000;
   classDef gold  fill:#fff8e1,stroke:#f9a825,color:#000;
-  classDef graph fill:#e8f5e9,stroke:#2e7d32,color:#000;
+  classDef grph fill:#e8f5e9,stroke:#2e7d32,color:#000;
   classDef serve fill:#e3f2fd,stroke:#1565c0,color:#000;
 
   subgraph SRC["Source · Postgres (restored ChEMBL)"]
@@ -44,8 +44,8 @@ flowchart LR
     Masq["mart_assay_quality"]:::gold
     Mcp["mart_compound_profile"]:::gold
     Mdq["mart_data_quality_summary"]:::gold
-    Gedge["graph_compound_target_edge"]:::graph
-    Gsim["graph_target_similarity"]:::graph
+    Gedge["graph_compound_target_edge"]:::grph
+    Gsim["graph_target_similarity"]:::grph
   end
 
   subgraph SERVE["Serving · Postgres assaylens.marts.* (read-only agent_ro)"]
