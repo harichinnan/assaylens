@@ -1,0 +1,37 @@
+name: "assaylens"
+version: "0.1.0"
+config-version: 2
+
+profile: "assaylens"
+
+model-paths: ["models"]
+test-paths: ["tests"]
+macro-paths: ["macros"]
+seed-paths: ["seeds"]
+
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+models:
+  assaylens:
+    # All models are Iceberg tables in the `lake` catalog (the Spark default
+    # catalog). Iceberg's JdbcCatalog has no view support, so staging is
+    # materialized as tables in `silver` rather than as views.
+    +file_format: iceberg
+    staging:
+      # Cleaned/typed measurement & dimension extracts: the SILVER layer.
+      +materialized: table
+      +schema: silver
+    marts:
+      # Dims, fact, and marts: the GOLD layer (serving + agent surface, before
+      # the publisher copies it into native Postgres marts.*).
+      +materialized: table
+      +schema: gold
+
+# Project-level vars: the curation thresholds live here so they are documented
+# in one place and reused by models + tests.
+vars:
+  curated_standard_types: ["IC50", "Ki", "Kd", "EC50"]
+  min_confidence_score: 7
+  # standard_relation values considered "exact / comparable".
+  comparable_relations: ["=", null]

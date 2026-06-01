@@ -1,0 +1,35 @@
+{
+  "page_meta": { "total_count": 6 },
+  "molecules": [
+    {
+      "molecule_chembl_id": "CHEMBL939", "pref_name": "GEFITINIB",
+      "molecule_structures": { "canonical_smiles": "COc1cc2ncnc(Nc3ccc(F)c(Cl)c3)c2cc1OCCCN1CCOCC1" },
+      "molecule_properties": { "full_mwt": "446.90", "alogp": "4.15", "hba": "7", "hbd": "1", "num_ro5_violations": "0" }
+    },
+    {
+      "molecule_chembl_id": "CHEMBL553", "pref_name": "ERLOTINIB",
+      "molecule_structures": { "canonical_smiles": "C#Cc1cccc(Nc2ncnc3cc(OCCOC)c(OCCOC)cc23)c1" },
+      "molecule_properties": { "full_mwt": "393.44", "alogp": "3.20", "hba": "7", "hbd": "1", "num_ro5_violations": "0" }
+    },
+    {
+      "molecule_chembl_id": "CHEMBL554", "pref_name": "LAPATINIB",
+      "molecule_structures": { "canonical_smiles": "CS(=O)(=O)CCNCc1ccc(-c2ccc3ncnc(Nc4ccc(OCc5cccc(F)c5)c(Cl)c4)c3c2)o1" },
+      "molecule_properties": { "full_mwt": "581.06", "alogp": "5.30", "hba": "8", "hbd": "2", "num_ro5_violations": "1" }
+    },
+    {
+      "molecule_chembl_id": "CHEMBL1229517", "pref_name": "VEMURAFENIB",
+      "molecule_structures": { "canonical_smiles": "CCCS(=O)(=O)Nc1ccc(F)c(C(=O)c2c[nH]c3ncc(-c4ccc(Cl)cc4)cc23)c1F" },
+      "molecule_properties": { "full_mwt": "489.92", "alogp": "4.80", "hba": "5", "hbd": "2", "num_ro5_violations": "0" }
+    },
+    {
+      "molecule_chembl_id": "CHEMBL1789941", "pref_name": "RUXOLITINIB",
+      "molecule_structures": { "canonical_smiles": "C[C@@H](CC#N)n1cc(-c2ncnc3[nH]ccc23)cn1" },
+      "molecule_properties": { "full_mwt": "306.37", "alogp": "2.10", "hba": "5", "hbd": "1", "num_ro5_violations": "0" }
+    },
+    {
+      "molecule_chembl_id": "CHEMBL1336", "pref_name": "SORAFENIB",
+      "molecule_structures": { "canonical_smiles": "CNC(=O)c1cc(Oc2ccc(NC(=O)Nc3ccc(Cl)c(C(F)(F)F)c3)cc2)ccn1" },
+      "molecule_properties": { "full_mwt": "464.82", "alogp": "4.90", "hba": "5", "hbd": "3", "num_ro5_violations": "0" }
+    }
+  ]
+}

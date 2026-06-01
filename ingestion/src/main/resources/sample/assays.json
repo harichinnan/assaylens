@@ -1,0 +1,13 @@
+{
+  "page_meta": { "total_count": 8 },
+  "assays": [
+    { "assay_chembl_id": "CHEMBL800001", "assay_type": "B", "description": "Inhibition of EGFR kinase activity (enzymatic, radiometric)", "confidence_score": 9, "target_chembl_id": "CHEMBL203" },
+    { "assay_chembl_id": "CHEMBL800002", "assay_type": "F", "description": "Antiproliferative activity against EGFR-dependent cell line", "confidence_score": 8, "target_chembl_id": "CHEMBL203" },
+    { "assay_chembl_id": "CHEMBL800003", "assay_type": "B", "description": "Inhibition of HER2/ERBB2 kinase activity", "confidence_score": 9, "target_chembl_id": "CHEMBL1824" },
+    { "assay_chembl_id": "CHEMBL800004", "assay_type": "B", "description": "Inhibition of BRAF V600E kinase activity", "confidence_score": 8, "target_chembl_id": "CHEMBL5145" },
+    { "assay_chembl_id": "CHEMBL800005", "assay_type": "F", "description": "Cell viability assay, BRAF-mutant melanoma line", "confidence_score": 5, "target_chembl_id": "CHEMBL5145" },
+    { "assay_chembl_id": "CHEMBL800006", "assay_type": "B", "description": "Inhibition of JAK2 kinase activity", "confidence_score": 9, "target_chembl_id": "CHEMBL2971" },
+    { "assay_chembl_id": "CHEMBL800007", "assay_type": "F", "description": "VEGFR2 (KDR) cellular autophosphorylation assay", "confidence_score": 7, "target_chembl_id": "CHEMBL279" },
+    { "assay_chembl_id": "CHEMBL800008", "assay_type": "B", "description": "Binding affinity to VEGFR2 (KDR)", "confidence_score": 6, "target_chembl_id": "CHEMBL279" }
+  ]
+}

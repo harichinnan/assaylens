@@ -1,0 +1,44 @@
+# --- Secrets / local config ---
+.env
+dbt/profiles.yml
+agent/app/.env
+# Provisioning output: contains the Metabase embedding secret + dashboard ids.
+metabase/.metabase_ids.json
+# Local Docker dependency caches (sbt/ivy/coursier/pip) created during runs.
+.docker-cache/
+
+# --- Data lake & ingested artifacts ---
+data/lake/
+*.parquet
+ingestion/src/main/resources/cache/
+# Local ChEMBL dump / restore artifacts (large; not tracked).
+raw/
+
+# --- Scala / sbt ---
+ingestion/target/
+ingestion/project/target/
+ingestion/project/project/
+.bsp/
+*.class
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+
+# --- dbt ---
+dbt/target/
+dbt/dbt_packages/
+dbt/logs/
+
+# --- Docker volumes (if bind-mounted locally) ---
+.docker-volumes/
+
+# --- IDE / OS ---
+.idea/
+.vscode/
+.DS_Store

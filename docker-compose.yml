@@ -1,0 +1,316 @@
+# =============================================================================
+# AssayLens — local stack (lakehouse build)
+#
+#   elasticsearch   search layer (curated activity evidence)
+#   metabase        BI dashboards on the serving Postgres
+#   agent           FastAPI governed AI copilot
+#   ui              Streamlit front end over the agent
+#   temporal        dev workflow server
+#   pipeline-worker Temporal worker; orchestrates the lakehouse stages
+#   spark-thrift    Spark Thrift Server over the Iceberg `lake` catalog (dbt-spark)
+#
+# Postgres is the host's NATIVE Postgres 14 (Homebrew), reached at
+# host.docker.internal:5432 — there is no Postgres service here anymore. MinIO
+# also runs natively on the host (host.docker.internal:9000). The Bronze sbt job,
+# dbt-spark, and the Spark publisher run as one-shot containers launched by the
+# pipeline-worker via the Docker socket. See HANDOFF.md / README.md.
+# =============================================================================
+services:
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.4
+    container_name: assaylens-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false          # dev only — do not do this in prod
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      # -XX:UseSVE=0 works around a SIGILL crash in the bundled JDK 21.0.2 on
+      # some ARM (Apple Silicon) CPUs; newer JDKs disable SVE automatically.
+      # JDK_JAVA_OPTIONS covers every JVM process (incl. the ES launcher CLI),
+      # unlike ES_JAVA_OPTS which only applies to the server JVM.
+      - JDK_JAVA_OPTIONS=-XX:UseSVE=0
+    ports:
+      - "9200:9200"
+    volumes:
+      - esdata:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9200/_cluster/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  metabase:
+    image: metabase/metabase:v0.49.6
+    container_name: assaylens-metabase
+    ports:
+      - "3000:3000"
+    environment:
+      # Metabase stores its own app data in this Postgres (separate DB).
+      MB_DB_TYPE: postgres
+      MB_DB_DBNAME: metabase
+      MB_DB_PORT: 5432
+      MB_DB_USER: ${POSTGRES_USER:-assaylens}
+      MB_DB_PASS: ${POSTGRES_PASSWORD:-assaylens}
+      MB_DB_HOST: host.docker.internal
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  agent:
+    build:
+      context: ./agent
+    container_name: assaylens-agent
+    env_file: .env
+    environment:
+      # Serving Postgres is the host's native PG; ES/Metabase stay in-network.
+      POSTGRES_HOST: host.docker.internal
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      METABASE_URL: http://metabase:3000
+      EMBEDDER_URL: http://embedder:8100
+      # Persist the LLM response cache across restarts (saves tokens).
+      AGENT_CACHE_PATH: /cache/llm_cache.json
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "8000:8000"
+    volumes:
+      - agentcache:/cache
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+
+  ui:
+    build:
+      context: ./ui
+    container_name: assaylens-ui
+    environment:
+      AGENT_API_URL: http://agent:8000
+    ports:
+      - "8501:8501"
+    depends_on:
+      - agent
+
+  # ---- Pipeline orchestration (Temporal) ----
+  temporal:
+    image: temporalio/admin-tools:latest
+    container_name: assaylens-temporal
+    # Single-container dev server (SQLite-backed) with the web UI on 8233.
+    command: >
+      temporal server start-dev --ip 0.0.0.0
+      --db-filename /home/temporal/temporal.db
+    ports:
+      # Host 7233 is often taken by another local Temporal; publish gRPC on 7244
+      # to avoid clashes. In-cluster services still use temporal:7233 internally.
+      - "7244:7233"   # frontend gRPC (worker/client) on host:7244
+      - "8233:8233"   # Temporal web UI
+    volumes:
+      - temporaldata:/home/temporal
+    healthcheck:
+      test: ["CMD-SHELL", "temporal operator cluster health --address 127.0.0.1:7233 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  pipeline-worker:
+    build:
+      context: .
+      dockerfile: orchestration/Dockerfile
+    container_name: assaylens-pipeline-worker
+    environment:
+      TEMPORAL_ADDRESS: temporal:7233
+      # Serving/source Postgres is the host's native PG (verification + ES stage).
+      PGHOST: host.docker.internal
+      PGUSER: ${POSTGRES_USER:-assaylens}
+      PGPASSWORD: ${POSTGRES_PASSWORD:-assaylens}
+      PGDATABASE: ${POSTGRES_DB:-assaylens}
+      POSTGRES_HOST: host.docker.internal
+      ELASTICSEARCH_URL: http://elasticsearch:9200
+      EMBEDDER_URL: http://embedder:8100
+      # Activities launch lakehouse job containers via the Docker socket; bind
+      # mounts in those `docker run`s are resolved by the HOST daemon, so they
+      # need the real host repo path, not the in-container /app path.
+      HOST_REPO_DIR: ${PWD}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./:/app                              # repo, so activities run the real scripts
+      - /var/run/docker.sock:/var/run/docker.sock   # docker-out-of-docker
+    depends_on:
+      temporal:
+        condition: service_healthy
+
+  # ---- Spark Thrift Server over the Iceberg `lake` catalog (dbt-spark target) ----
+  spark-thrift:
+    build:
+      context: .
+      dockerfile: docker/spark-iceberg/Dockerfile
+    image: assaylens/spark-iceberg:latest   # reused by the graph job + publisher
+    container_name: assaylens-spark-thrift
+    environment:
+      AWS_REGION: us-east-1
+      # NB: no -XX:UseSVE=0 here — this image is JDK 11, which predates SVE
+      # codegen (the flag is JDK 17+ and would abort the JVM). Only the JDK 17
+      # sbt Bronze job needs that arm64 workaround.
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    ports:
+      - "10000:10000"   # HiveServer2 thrift endpoint (dbt-spark connects here)
+      - "4041:4040"     # Spark UI (4041 on host to avoid clashes)
+    # HiveThriftServer2 in the foreground (so the container stays up). The `lake`
+    # catalog is the JdbcCatalog on iceberg_catalog + S3FileIO/MinIO, and is the
+    # DEFAULT catalog so dbt's 2-part `silver.model` / `gold.model` names resolve
+    # into it (the same config the Bronze sbt job uses).
+    command:
+      - /opt/spark/bin/spark-submit
+      - --class
+      - org.apache.spark.sql.hive.thriftserver.HiveThriftServer2
+      - --name
+      - AssayLensThriftServer
+      - --master
+      - local[*]
+      - --driver-memory
+      - 3g
+      - --conf
+      - spark.sql.extensions=org.apache.iceberg.spark.extensions.IcebergSparkSessionExtensions
+      - --conf
+      - spark.sql.catalog.lake=org.apache.iceberg.spark.SparkCatalog
+      - --conf
+      - spark.sql.catalog.lake.catalog-impl=org.apache.iceberg.jdbc.JdbcCatalog
+      - --conf
+      - spark.sql.catalog.lake.uri=jdbc:postgresql://host.docker.internal:5432/iceberg_catalog
+      - --conf
+      - spark.sql.catalog.lake.jdbc.user=assaylens
+      - --conf
+      - spark.sql.catalog.lake.jdbc.password=assaylens
+      - --conf
+      - spark.sql.catalog.lake.warehouse=s3://assaylens/lakehouse
+      - --conf
+      - spark.sql.catalog.lake.io-impl=org.apache.iceberg.aws.s3.S3FileIO
+      - --conf
+      - spark.sql.catalog.lake.s3.endpoint=http://host.docker.internal:9000
+      - --conf
+      - spark.sql.catalog.lake.s3.path-style-access=true
+      - --conf
+      - spark.sql.catalog.lake.s3.access-key-id=minioadmin
+      - --conf
+      - spark.sql.catalog.lake.s3.secret-access-key=minioadmin
+      - --conf
+      - spark.sql.defaultCatalog=lake
+      - --conf
+      - spark.hadoop.hive.server2.thrift.port=10000
+      - --conf
+      - spark.hadoop.hive.server2.thrift.bind.host=0.0.0.0
+      # Raw thrift transport (no SASL) — matches dbt-spark profile auth: NOSASL.
+      - --conf
+      - spark.hadoop.hive.server2.authentication=NOSASL
+      - spark-internal
+
+  # ---- Embedding service (dense vectors for semantic RAG) ---------------------
+  embedder:
+    build:
+      context: ./embedder
+    image: assaylens/embedder:latest
+    container_name: assaylens-embedder
+    ports:
+      - "8100:8100"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8100/health')\" || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  # ---- Langfuse v3 (LLM observability) ----------------------------------------
+  # Reuses native Postgres (db `langfuse`) + native MinIO (bucket `langfuse`);
+  # Clickhouse (traces) + Redis (queue) are dedicated containers.
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.3
+    container_name: assaylens-clickhouse
+    environment:
+      CLICKHOUSE_DB: default
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse}
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    ulimits:
+      nofile: { soft: 262144, hard: 262144 }
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8123/ping || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 15
+
+  redis:
+    image: redis:7
+    container_name: assaylens-redis
+    command: ["redis-server", "--requirepass", "${REDIS_AUTH:-langfuseredis}", "--maxmemory-policy", "noeviction"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_AUTH:-langfuseredis}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+
+  langfuse-worker:
+    image: langfuse/langfuse-worker:3
+    container_name: assaylens-langfuse-worker
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      clickhouse: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    environment: &langfuse-env
+      DATABASE_URL: postgresql://langfuse:langfuse@host.docker.internal:5432/langfuse
+      SALT: ${LANGFUSE_SALT}
+      ENCRYPTION_KEY: ${LANGFUSE_ENCRYPTION_KEY}
+      TELEMETRY_ENABLED: "false"
+      LANGFUSE_ENABLE_EXPERIMENTAL_FEATURES: "false"
+      CLICKHOUSE_MIGRATION_URL: clickhouse://clickhouse:9000
+      CLICKHOUSE_URL: http://clickhouse:8123
+      CLICKHOUSE_USER: clickhouse
+      CLICKHOUSE_PASSWORD: ${CLICKHOUSE_PASSWORD:-clickhouse}
+      CLICKHOUSE_CLUSTER_ENABLED: "false"
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      REDIS_AUTH: ${REDIS_AUTH:-langfuseredis}
+      LANGFUSE_S3_EVENT_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_EVENT_UPLOAD_REGION: us-east-1
+      LANGFUSE_S3_EVENT_UPLOAD_ENDPOINT: http://host.docker.internal:9000
+      LANGFUSE_S3_EVENT_UPLOAD_ACCESS_KEY_ID: minioadmin
+      LANGFUSE_S3_EVENT_UPLOAD_SECRET_ACCESS_KEY: minioadmin
+      LANGFUSE_S3_EVENT_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_EVENT_UPLOAD_PREFIX: events/
+      LANGFUSE_S3_MEDIA_UPLOAD_BUCKET: langfuse
+      LANGFUSE_S3_MEDIA_UPLOAD_REGION: us-east-1
+      LANGFUSE_S3_MEDIA_UPLOAD_ENDPOINT: http://host.docker.internal:9000
+      LANGFUSE_S3_MEDIA_UPLOAD_ACCESS_KEY_ID: minioadmin
+      LANGFUSE_S3_MEDIA_UPLOAD_SECRET_ACCESS_KEY: minioadmin
+      LANGFUSE_S3_MEDIA_UPLOAD_FORCE_PATH_STYLE: "true"
+      LANGFUSE_S3_MEDIA_UPLOAD_PREFIX: media/
+
+  langfuse-web:
+    image: langfuse/langfuse:3
+    container_name: assaylens-langfuse-web
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      clickhouse: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    ports:
+      - "3001:3000"   # UI on host:3001 (Metabase owns 3000)
+    environment:
+      <<: *langfuse-env
+      NEXTAUTH_URL: http://localhost:3001
+      NEXTAUTH_SECRET: ${LANGFUSE_NEXTAUTH_SECRET}
+      # Headless init: org/project + fixed API keys + admin user.
+      LANGFUSE_INIT_ORG_ID: assaylens
+      LANGFUSE_INIT_ORG_NAME: AssayLens
+      LANGFUSE_INIT_PROJECT_ID: assaylens
+      LANGFUSE_INIT_PROJECT_NAME: AssayLens
+      LANGFUSE_INIT_PROJECT_PUBLIC_KEY: ${LANGFUSE_PUBLIC_KEY}
+      LANGFUSE_INIT_PROJECT_SECRET_KEY: ${LANGFUSE_SECRET_KEY}
+      LANGFUSE_INIT_USER_EMAIL: ${LANGFUSE_INIT_USER_EMAIL}
+      LANGFUSE_INIT_USER_NAME: Admin
+      LANGFUSE_INIT_USER_PASSWORD: ${LANGFUSE_INIT_USER_PASSWORD}
+
+volumes:
+  esdata:
+  agentcache:
+  temporaldata:
+  clickhouse_data:

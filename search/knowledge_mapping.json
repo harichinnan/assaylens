@@ -1,0 +1,31 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0,
+    "analysis": {
+      "analyzer": {
+        "assay_text": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["lowercase", "asciifolding"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "doc_id": { "type": "keyword" },
+      "doc_type": { "type": "keyword" },
+      "title": { "type": "text", "analyzer": "assay_text", "fields": { "raw": { "type": "keyword" } } },
+      "text": { "type": "text", "analyzer": "assay_text" },
+      "entity_id": { "type": "keyword" },
+      "target_chembl_id": { "type": "keyword" },
+      "embedding": {
+        "type": "dense_vector",
+        "dims": 384,
+        "index": true,
+        "similarity": "cosine"
+      }
+    }
+  }
+}

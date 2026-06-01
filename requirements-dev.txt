@@ -1,0 +1,7 @@
+# Python deps for the loader, search indexer, and unit tests (run from repo root).
+# The agent has its own pinned set in agent/requirements.txt.
+pyarrow==16.1.0
+psycopg[binary]==3.1.19
+elasticsearch==8.13.1
+dbt-postgres==1.8.2
+pytest==8.2.2

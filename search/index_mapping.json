@@ -1,0 +1,41 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0,
+    "analysis": {
+      "analyzer": {
+        "assay_text": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["lowercase", "asciifolding"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "activity_id":        { "type": "long" },
+
+      "molecule_chembl_id": { "type": "keyword" },
+      "compound_name":      { "type": "text", "analyzer": "assay_text",
+                              "fields": { "raw": { "type": "keyword" } } },
+      "canonical_smiles":   { "type": "keyword", "index": false },
+
+      "target_chembl_id":   { "type": "keyword" },
+      "target_name":        { "type": "text", "analyzer": "assay_text",
+                              "fields": { "raw": { "type": "keyword" } } },
+
+      "assay_chembl_id":    { "type": "keyword" },
+      "assay_description":  { "type": "text", "analyzer": "assay_text" },
+
+      "standard_type":      { "type": "keyword" },
+      "standard_value_nm":  { "type": "double" },
+      "pchembl_value":      { "type": "double" },
+      "confidence_score":   { "type": "integer" },
+
+      "journal":            { "type": "text", "analyzer": "assay_text",
+                              "fields": { "raw": { "type": "keyword" } } },
+      "year":               { "type": "integer" }
+    }
+  }
+}

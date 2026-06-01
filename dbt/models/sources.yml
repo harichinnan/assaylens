@@ -1,0 +1,24 @@
+version: 2
+
+sources:
+  - name: bronze
+    description: >
+      Iceberg Bronze tables written by the Scala Spark ingestion job
+      (ChemblJdbcSource -> lake.bronze.*), one per ingested entity. `bronze` is
+      a namespace in the Spark default catalog `lake`.
+    schema: bronze
+    tables:
+      - name: activity
+        description: One row per bioactivity measurement (the fact grain).
+        columns:
+          - name: activity_id
+            description: ChEMBL activity primary key.
+            tests: [not_null]
+      - name: molecule
+        description: Compound / molecule master with physchem properties.
+      - name: target
+        description: Biological targets (the 5 seeded kinases).
+      - name: assay
+        description: Assays, including confidence score and description.
+      - name: document
+        description: Source publications / documents (lineage).

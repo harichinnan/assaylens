@@ -1,0 +1,7 @@
+# Temporal worker. The lakehouse stages (Bronze sbt job, dbt-spark, Spark
+# publisher) run in their own containers launched via the Docker socket, so the
+# worker image itself only needs the Temporal SDK + a Postgres/ES client for
+# in-worker verification and the ES indexing stage.
+temporalio==1.8.0
+psycopg[binary]==3.1.19
+elasticsearch==8.13.1

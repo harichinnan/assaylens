@@ -1,0 +1,10 @@
+{
+  "page_meta": { "total_count": 5 },
+  "documents": [
+    { "document_chembl_id": "CHEMBL1140001", "pubmed_id": 12181496, "journal": "J Med Chem", "year": 2002 },
+    { "document_chembl_id": "CHEMBL1140002", "pubmed_id": 15205354, "journal": "Cancer Res", "year": 2004 },
+    { "document_chembl_id": "CHEMBL1140003", "pubmed_id": 20818844, "journal": "Nature", "year": 2010 },
+    { "document_chembl_id": "CHEMBL1140004", "pubmed_id": 20131934, "journal": "J Med Chem", "year": 2010 },
+    { "document_chembl_id": "CHEMBL1140005", "pubmed_id": 15466206, "journal": "Cancer Res", "year": 2004 }
+  ]
+}

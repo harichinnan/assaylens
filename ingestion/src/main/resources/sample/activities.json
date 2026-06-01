@@ -1,0 +1,77 @@
+{
+  "page_meta": { "total_count": 12 },
+  "activities": [
+    {
+      "activity_id": 100001, "molecule_chembl_id": "CHEMBL939", "target_chembl_id": "CHEMBL203",
+      "assay_chembl_id": "CHEMBL800001", "document_chembl_id": "CHEMBL1140001",
+      "standard_type": "IC50", "standard_relation": "=", "standard_value": "2.0", "standard_units": "nM",
+      "pchembl_value": "8.70", "activity_comment": null, "data_validity_comment": null
+    },
+    {
+      "activity_id": 100002, "molecule_chembl_id": "CHEMBL553", "target_chembl_id": "CHEMBL203",
+      "assay_chembl_id": "CHEMBL800001", "document_chembl_id": "CHEMBL1140001",
+      "standard_type": "IC50", "standard_relation": "=", "standard_value": "0.03", "standard_units": "uM",
+      "pchembl_value": "7.52", "activity_comment": null, "data_validity_comment": null
+    },
+    {
+      "activity_id": 100003, "molecule_chembl_id": "CHEMBL553", "target_chembl_id": "CHEMBL203",
+      "assay_chembl_id": "CHEMBL800002", "document_chembl_id": "CHEMBL1140001",
+      "standard_type": "IC50", "standard_relation": ">", "standard_value": "1000", "standard_units": "nM",
+      "pchembl_value": null, "activity_comment": "Not active at highest concentration", "data_validity_comment": null
+    },
+    {
+      "activity_id": 100004, "molecule_chembl_id": "CHEMBL554", "target_chembl_id": "CHEMBL1824",
+      "assay_chembl_id": "CHEMBL800003", "document_chembl_id": "CHEMBL1140002",
+      "standard_type": "IC50", "standard_relation": "=", "standard_value": "9.0", "standard_units": "nM",
+      "pchembl_value": "8.05", "activity_comment": null, "data_validity_comment": null
+    },
+    {
+      "activity_id": 100005, "molecule_chembl_id": "CHEMBL554", "target_chembl_id": "CHEMBL1824",
+      "assay_chembl_id": "CHEMBL800003", "document_chembl_id": "CHEMBL1140002",
+      "standard_type": "Kd", "standard_relation": "=", "standard_value": "5.0", "standard_units": "nM",
+      "pchembl_value": "8.30", "activity_comment": null, "data_validity_comment": null
+    },
+    {
+      "activity_id": 100006, "molecule_chembl_id": "CHEMBL1229517", "target_chembl_id": "CHEMBL5145",
+      "assay_chembl_id": "CHEMBL800004", "document_chembl_id": "CHEMBL1140003",
+      "standard_type": "IC50", "standard_relation": "=", "standard_value": "31.0", "standard_units": "nM",
+      "pchembl_value": "7.51", "activity_comment": null, "data_validity_comment": null
+    },
+    {
+      "activity_id": 100007, "molecule_chembl_id": "CHEMBL1229517", "target_chembl_id": "CHEMBL5145",
+      "assay_chembl_id": "CHEMBL800005", "document_chembl_id": "CHEMBL1140003",
+      "standard_type": "IC50", "standard_relation": "=", "standard_value": "12.5", "standard_units": "ug.mL-1",
+      "pchembl_value": null, "activity_comment": null, "data_validity_comment": "Outside typical range"
+    },
+    {
+      "activity_id": 100008, "molecule_chembl_id": "CHEMBL1789941", "target_chembl_id": "CHEMBL2971",
+      "assay_chembl_id": "CHEMBL800006", "document_chembl_id": "CHEMBL1140004",
+      "standard_type": "IC50", "standard_relation": "=", "standard_value": "3.3", "standard_units": "nM",
+      "pchembl_value": "8.48", "activity_comment": null, "data_validity_comment": null
+    },
+    {
+      "activity_id": 100009, "molecule_chembl_id": "CHEMBL1336", "target_chembl_id": "CHEMBL279",
+      "assay_chembl_id": "CHEMBL800007", "document_chembl_id": "CHEMBL1140005",
+      "standard_type": "EC50", "standard_relation": "=", "standard_value": "90.0", "standard_units": "nM",
+      "pchembl_value": "7.05", "activity_comment": null, "data_validity_comment": null
+    },
+    {
+      "activity_id": 100010, "molecule_chembl_id": "CHEMBL1336", "target_chembl_id": "CHEMBL279",
+      "assay_chembl_id": "CHEMBL800008", "document_chembl_id": "CHEMBL1140005",
+      "standard_type": "Ki", "standard_relation": "~", "standard_value": "200.0", "standard_units": "nM",
+      "pchembl_value": "6.70", "activity_comment": null, "data_validity_comment": null
+    },
+    {
+      "activity_id": 100011, "molecule_chembl_id": "CHEMBL939", "target_chembl_id": "CHEMBL203",
+      "assay_chembl_id": "CHEMBL800002", "document_chembl_id": "CHEMBL1140001",
+      "standard_type": "IC50", "standard_relation": "=", "standard_value": null, "standard_units": null,
+      "pchembl_value": null, "activity_comment": "Data not extractable", "data_validity_comment": null
+    },
+    {
+      "activity_id": 100012, "molecule_chembl_id": "CHEMBL939", "target_chembl_id": "CHEMBL203",
+      "assay_chembl_id": "CHEMBL800001", "document_chembl_id": "CHEMBL1140001",
+      "standard_type": "IC50", "standard_relation": "=", "standard_value": "2.4", "standard_units": "nM",
+      "pchembl_value": "8.62", "activity_comment": null, "data_validity_comment": null
+    }
+  ]
+}

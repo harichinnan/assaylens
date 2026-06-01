@@ -1,0 +1,16 @@
+# Copy to dbt/profiles.yml and adjust. profiles.yml is gitignored.
+# These defaults match docker-compose.yml + .env.example.
+assaylens:
+  target: dev
+  outputs:
+    dev:
+      type: postgres
+      host: "{{ env_var('POSTGRES_HOST', 'localhost') }}"
+      port: "{{ env_var('POSTGRES_PORT', '5432') | int }}"
+      user: "{{ env_var('POSTGRES_USER', 'assaylens') }}"
+      password: "{{ env_var('POSTGRES_PASSWORD', 'assaylens') }}"
+      dbname: "{{ env_var('POSTGRES_DB', 'assaylens') }}"
+      # Default landing schema; models override to `staging` / `marts` via the
+      # generate_schema_name macro (see macros/generate_schema_name.sql).
+      schema: public
+      threads: 4

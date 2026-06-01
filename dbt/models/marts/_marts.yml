@@ -1,0 +1,99 @@
+version: 2
+
+models:
+  # ---- Dimensions ----------------------------------------------------------
+  - name: dim_compound
+    description: Compound dimension.
+    columns:
+      - name: compound_key
+        tests: [not_null, unique]
+      - name: molecule_chembl_id
+        tests: [not_null, unique]
+  - name: dim_target
+    description: Target dimension.
+    columns:
+      - name: target_key
+        tests: [not_null, unique]
+      - name: target_chembl_id
+        tests: [not_null, unique]
+  - name: dim_assay
+    description: Assay dimension.
+    columns:
+      - name: assay_key
+        tests: [not_null, unique]
+      - name: assay_chembl_id
+        tests: [not_null, unique]
+      - name: confidence_score
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 0
+              max_value: 9
+              config: { severity: warn }
+  - name: dim_document
+    description: Document dimension.
+    columns:
+      - name: document_key
+        tests: [not_null, unique]
+      - name: document_chembl_id
+        tests: [not_null, unique]
+
+  # ---- Fact ----------------------------------------------------------------
+  - name: fact_bioactivity_result
+    description: Measurement-grain fact. Keeps every measurement; curation is downstream.
+    columns:
+      - name: activity_id
+        tests: [not_null, unique]
+      - name: target_key
+        # Every measurement traces to a seeded target.
+        tests:
+          - relationships:
+              to: ref('dim_target')
+              field: target_key
+      - name: compound_key
+        tests:
+          - relationships:
+              to: ref('dim_compound')
+              field: compound_key
+
+  # ---- Marts ---------------------------------------------------------------
+  - name: mart_compound_target_potency
+    description: Curated, comparable potency evidence (the agent/search surface).
+    columns:
+      - name: activity_id
+        tests: [not_null, unique]
+      - name: standard_type
+        tests:
+          - accepted_values:
+              values: ["IC50", "Ki", "Kd", "EC50"]
+      - name: standard_value_nm
+        tests: [not_null]
+      - name: pchembl_value
+        tests: [not_null]
+      - name: confidence_score
+        tests:
+          - dbt_utils.accepted_range:
+              min_value: 7
+              max_value: 9
+      - name: standard_relation
+        # By curation rule, only '=' or null survive.
+        tests:
+          - accepted_values:
+              values: ["="]
+              config: { where: "standard_relation is not null" }
+  - name: mart_target_activity_summary
+    columns:
+      - name: target_chembl_id
+        tests: [not_null, unique]
+  - name: mart_compound_profile
+    columns:
+      - name: molecule_chembl_id
+        tests: [not_null, unique]
+  - name: mart_assay_quality
+    columns:
+      - name: assay_chembl_id
+        tests: [not_null]
+  - name: mart_data_quality_summary
+    description: Long-format warehouse DQ metrics (metric_group, metric, value).
+    columns:
+      - name: value
+        tests: [not_null]

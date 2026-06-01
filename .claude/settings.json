@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__plugin_playwright_playwright__browser_snapshot",
+      "Bash(terraform plan*)",
+      "Bash(terraform validate*)",
+      "Bash(terraform output*)",
+      "Bash(terraform show*)",
+      "Bash(ffprobe *)",
+      "Bash(aws s3 ls *)",
+      "Bash(aws logs tail *)",
+      "Bash(docker compose config*)",
+      "Bash(docker compose ps*)"
+    ]
+  }
+}

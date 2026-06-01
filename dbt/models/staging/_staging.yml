@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: stg_compound
+    columns:
+      - name: molecule_chembl_id
+        tests: [not_null, unique]
+  - name: stg_target
+    columns:
+      - name: target_chembl_id
+        tests: [not_null, unique]
+  - name: stg_assay
+    columns:
+      - name: assay_chembl_id
+        tests: [not_null, unique]
+  - name: stg_document
+    columns:
+      - name: document_chembl_id
+        tests: [not_null, unique]
+  - name: stg_activity
+    columns:
+      - name: activity_id
+        tests: [not_null, unique]
+      - name: standard_relation
+        # Surface ambiguous/relational operators explicitly. Warn (not error)
+        # because they are valid ChEMBL data — just excluded from curation.
+        tests:
+          - accepted_values:
+              values: ["=", ">", "<", ">=", "<=", "~"]
+              config:
+                severity: warn

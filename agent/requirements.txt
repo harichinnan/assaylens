@@ -1,0 +1,16 @@
+fastapi==0.111.0
+uvicorn[standard]==0.30.1
+pydantic==2.7.4
+psycopg[binary]==3.1.19
+elasticsearch==8.13.1
+anthropic==0.34.2
+# anthropic 0.34.2 passes proxies= to httpx, removed in httpx>=0.28 -> pin compatible.
+httpx==0.27.2
+# Signs Metabase static-embedding tokens (HS256).
+PyJWT==2.8.0
+# LangGraph orchestration (route -> execute -> summarize state machine).
+langgraph==0.3.34
+langchain-core==0.3.86
+python-dotenv==1.0.1
+# Langfuse v3 tracing (LLM/tool observability). OTEL-based SDK.
+langfuse==3.3.4
