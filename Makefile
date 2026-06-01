@@ -111,6 +111,10 @@ agent: ## Run the FastAPI agent locally (hot reload)
 ui: ## Run the Streamlit UI locally
 	streamlit run ui/streamlit_app.py
 
+.PHONY: diagrams
+diagrams: ## Render diagrams/*.md (Mermaid) to SVG via mermaid-cli (Docker)
+	bash scripts/render_diagrams.sh
+
 .PHONY: test
 test: ## Run python unit tests (guardrails + metric definitions)
 	pytest -q tests/
